@@ -10,35 +10,54 @@
             [status-im.constants :as constants]
             [status-im.utils.identicon :as identicon]
             [status-im.utils.datetime :as time]
+            [status-im.utils.utils :as utils]
             [status-im.ui.components.react :as react]
             [status-im.ui.components.colors :as colors]
             [status-im.chat.views.message.datemark :as message.datemark]
             [status-im.ui.screens.desktop.main.chat.styles :as styles]
             [status-im.i18n :as i18n]))
 
-(views/defview toolbar-chat-view []
-  (views/letsubs [{:keys [chat-id name public-key public? group-chat]} [:get-current-chat]
-                  {:keys [pending?]}                                   [:get-current-chat-contact]]
-    (let [chat-name (str
-                     (if public? "#" "")
-                     (if (string/blank? name)
-                       (gfycat.core/generate-gfy public-key)
-                       (or name
-                           (i18n/label :t/chat-name))))]
-      [react/view {:style styles/toolbar-chat-view}
-       [react/view {:style {:flex-direction :row}}
-        (when public?
-          [icons/icon :icons/public-chat])
-        (when (and group-chat (not public?))
-          [icons/icon :icons/group-chat])
-        [react/text {:style styles/toolbar-chat-name}
-         chat-name]]
-       (when pending?
-         [react/touchable-highlight
-          {:on-press #(re-frame/dispatch [:add-pending-contact chat-id])}
-          [react/view {:style styles/add-contact}                                      ;style/add-contact
-           [react/text {:style styles/add-contact-text}
-            (i18n/label :t/add-to-contacts)]]])])))
+(views/defview toolbar-chat-view [{:keys [chat-id color public-key public? group-chat]
+                                   :as current-chat}]
+  (views/letsubs [photo-path        [:get-chat-photo chat-id]
+                  chat-name         [:get-current-chat-name]
+                  {:keys [pending?]} [:get-current-chat-contact]]
+    [react/view {:style styles/toolbar-chat-view}
+     [react/view {:style {:flex-direction :row
+                          :flex 1}}
+      (if public?
+        [react/view {:style (styles/topic-image color)}
+         [react/text {:style styles/topic-text}
+          (string/capitalize (second chat-name))]]
+        [react/image {:style styles/chat-icon
+                      :source {:uri photo-path}}])
+      [react/view {:style (styles/chat-title-and-type pending?)}
+       [react/text {:style styles/chat-title}
+        chat-name]
+       (cond pending?
+             [react/touchable-highlight
+              {:on-press #(re-frame/dispatch [:add-pending-contact chat-id])}
+              [react/text {:style styles/add-contact-text}
+               (i18n/label :t/add-to-contacts)]]
+             public?
+             [react/text {:style styles/public-chat-text}
+              (i18n/label :t/public-chat)])]]
+     [react/view
+      [react/touchable-highlight
+       {:on-press (fn []
+                    (utils/show-confirmation (i18n/label :clear-history-confirmation)
+                                             ""
+                                             (i18n/label :clear-history-action)
+                                             #(re-frame/dispatch [:clear-history])))}
+       [react/text {:style styles/profile-actions-text}
+        (i18n/label :t/clear-history)]]
+      [react/touchable-highlight  {:on-press (fn []
+                                               (utils/show-confirmation (i18n/label :delete-chat-confirmation)
+                                                                        ""
+                                                                        (i18n/label :delete-chat-action)
+                                                                        #(re-frame/dispatch [:remove-chat-and-navigate-home chat-id])))}
+       [react/text {:style styles/profile-actions-text}
+        (i18n/label :t/delete-chat)]]]]))
 
 (views/defview message-author-name [{:keys [outgoing from] :as message}]
   (views/letsubs [current-account [:get-current-account]
@@ -176,6 +195,6 @@
 (views/defview chat-view []
   (views/letsubs [current-chat [:get-current-chat]]
     [react/view {:style styles/chat-view}
-     [toolbar-chat-view]
+     [toolbar-chat-view current-chat]
      [messages-view current-chat]
      [chat-text-input]]))

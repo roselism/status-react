@@ -8,16 +8,16 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
- // #define BUILD_FOR_BUNDLE
+// #define BUILD_FOR_BUNDLE
 
 #include <QCommandLineParser>
 #include <QFile>
 #include <QGuiApplication>
 #include <QProcess>
 #include <QQuickView>
+#include <QStandardPaths>
 #include <QTimer>
 #include <QUrl>
-#include <QStandardPaths>
 
 #include "attachedproperties.h"
 #include "reactitem.h"
@@ -203,7 +203,9 @@ int main(int argc, char **argv) {
 #ifdef BUILD_FOR_BUNDLE
 
 void writeLogsToFile() {
-  QFile logFile(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/StatusIm.log");
+  QFile logFile(
+      QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) +
+      "/StatusIm.log");
   if (logFile.open(QIODevice::WriteOnly | QIODevice::Append)) {
     for (QString message : consoleOutputStrings) {
       logFile.write(message.toStdString().c_str());

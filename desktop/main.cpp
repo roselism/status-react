@@ -8,16 +8,16 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
- // #define BUILD_FOR_BUNDLE
+// #define BUILD_FOR_BUNDLE
 
 #include <QCommandLineParser>
 #include <QFile>
 #include <QGuiApplication>
 #include <QProcess>
 #include <QQuickView>
+#include <QStandardPaths>
 #include <QTimer>
 #include <QUrl>
-#include <QStandardPaths>
 
 #include "attachedproperties.h"
 #include "reactitem.h"
@@ -202,8 +202,12 @@ int main(int argc, char **argv) {
 
 #ifdef BUILD_FOR_BUNDLE
 
+QString getDataStoragePath() {
+  return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+}
+
 void writeLogsToFile() {
-  QFile logFile(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/StatusIm.log");
+  QFile logFile(getDataStoragePath() + "/StatusIm.log");
   if (logFile.open(QIODevice::WriteOnly | QIODevice::Append)) {
     for (QString message : consoleOutputStrings) {
       logFile.write(message.toStdString().c_str());
@@ -217,6 +221,7 @@ void writeLogsToFile() {
 
 void runUbuntuServer() {
   QProcess *process = new QProcess();
+  process->setWorkingDirectory(getDataStoragePath());
   process->setProgram(QGuiApplication::applicationDirPath() + "/ubuntu-server");
   QObject::connect(process, &QProcess::errorOccurred,
                    [=](QProcess::ProcessError) {

@@ -141,14 +141,7 @@ int main(int argc, char **argv) {
   Q_INIT_RESOURCE(react_resources);
 
 #ifdef BUILD_FOR_BUNDLE
-  QString dataFolder = QDir::homePath() + "/Library/StatusIm/";
   qInstallMessageHandler(saveMessage);
-
-  QDir dir(dataFolder + "ethereum/mainnet_rpc");
-  if (!dir.exists()) {
-    dir.mkpath(".");
-  }
-
   runUbuntuServer();
 #endif
 
@@ -203,7 +196,13 @@ int main(int argc, char **argv) {
 #ifdef BUILD_FOR_BUNDLE
 
 QString getDataStoragePath() {
-  return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+  QString dataStoragePath =
+      QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+  QDir dir(dataStoragePath);
+  if (!dir.exists()) {
+    dir.mkpath(".");
+  }
+  return dataStoragePath;
 }
 
 void writeLogsToFile() {

@@ -1,11 +1,11 @@
 (ns status-im.utils.http
   (:require [status-im.utils.utils :as utils]
-            [status-im.react-native.js-dependencies :as rn-dependencies]
             [taoensso.timbre :as log])
   (:refer-clojure :exclude [get]))
 
 ;; Default HTTP request timeout ms
 (def http-request-default-timeout-ms 3000)
+(def fetch                  (.-default (js/require "react-native-fetch-polyfill")))
 
 (defn post
   "Performs an HTTP POST request"
@@ -14,7 +14,7 @@
   ([url data on-success on-error]
    (post url data on-success on-error nil))
   ([url data on-success on-error {:keys [timeout-ms headers]}]
-   (-> (rn-dependencies/fetch
+   (-> (fetch
         url
         (clj->js (merge {:method  "POST"
                          :body    data
@@ -34,7 +34,7 @@
   ([url on-success on-error]
    (get url on-success on-error nil))
   ([url on-success on-error {:keys [valid-response? timeout-ms]}]
-   (-> (rn-dependencies/fetch url
+   (-> (fetch url
                               (clj->js {:method  "GET"
                                         :headers {"Cache-Control" "no-cache"}
                                         :timeout (or timeout-ms http-request-default-timeout-ms)}))

@@ -3,6 +3,7 @@
    [cljs.core.async.macros :refer [go-loop go]])
   (:require [status-im.ui.components.react :as r]
             [re-frame.core :refer [dispatch] :as re-frame]
+            [status-im.thread :as status-im.thread]
             [taoensso.timbre :as log]
             [cljs.core.async :as async :refer [<!]]
             [status-im.utils.js-resources :as js-res]
@@ -51,16 +52,18 @@
   (when (exists? (.-NativeModules rn-dependencies/react-native))
     (.-Status (.-NativeModules rn-dependencies/react-native))))
 
+(def i18n                   (.-default (js/require "react-native-i18n")))
+
 (defn init-jail []
   (when status
     (call-module
      (fn []
        (let [init-js (string/join [js-res/status-js
                                    "I18n.locale = '"
-                                   rn-dependencies/i18n.locale
+                                   i18n.locale
                                    "'; "
                                    js-res/web3])]
-         (.initJail status init-js #(do (re-frame/dispatch [:initialize-keychain])
+         (.initJail status init-js #(do (status-im.thread/dispatch [:initialize-keychain])
                                         (log/debug "JavaScriptCore jail initialized"))))))))
 
 (defonce listener-initialized (atom false))
@@ -68,7 +71,7 @@
 (when-not @listener-initialized
   (reset! listener-initialized true)
   (.addListener r/device-event-emitter "gethEvent"
-                #(dispatch [:signal-event (.-jsonEvent %)])))
+                #(re-frame/dispatch [:signal-event (.-jsonEvent %)])))
 
 (defn should-move-to-internal-storage? [on-result]
   (when status
@@ -155,7 +158,7 @@
         #_(log/debug :call-jail :params params)
         (let [params' (update params :context assoc
                               :debug js/goog.DEBUG
-                              :locale rn-dependencies/i18n.locale)
+                              :locale i18n.locale)
               cb      (fn [jail-result]
                         (let [result (-> jail-result
                                          types/json->clj
@@ -216,7 +219,7 @@
      {:jail-id  chat-id
       :path     path
       :params   params
-      :callback (or callback #(dispatch [:chat-received-message/bot-response {:chat-id chat-id} %]))})))
+      :callback (or callback #(status-im.thread/dispatch [:chat-received-message/bot-response {:chat-id chat-id} %]))})))
 
 (defn set-soft-input-mode [mode]
   (when status

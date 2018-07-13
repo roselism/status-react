@@ -1,11 +1,10 @@
 (ns status-im.utils.snoopy
-  (:require [status-im.react-native.js-dependencies :as js-dependencies]
-            [status-im.utils.config :as config]))
+  (:require [status-im.utils.config :as config]))
 
-(def snoopy (.-default js-dependencies/snoopy))
-(def sn-filter (.-default js-dependencies/snoopy-filter))
-(def bars (.-default js-dependencies/snoopy-bars))
-(def buffer (.-default js-dependencies/snoopy-buffer))
+(def snoopy (.-default (js/require "rn-snoopy")))
+(def snoopy-filter (.-default (js/require "rn-snoopy/stream/filter")))
+(def snoopy-bars (.-default (js/require "rn-snoopy/stream/bars")))
+(def snoopy-buffer (.-default (js/require "rn-snoopy/stream/buffer")))
 
 (defn create-filter [f]
   (fn [message]
@@ -54,20 +53,22 @@
 
 (defn threshold-warnings
   [{:keys [filter-fn label tick? print-events? threshold events threshold-message]}]
-  (.subscribe ((bars
+  (.subscribe ((snoopy-bars
                 (fn [a] (.-length a))
                 threshold
                 tick?
                 true
                 label
                 threshold-message)
-               ((buffer) ((sn-filter (create-filter filter-fn)
+               ((snoopy-buffer) ((snoopy-filter (create-filter filter-fn)
                                      print-events?)
                           events)))))
 
+(def EventEmmiter           (js/require "react-native/Libraries/vendor/emitter/EventEmitter"))
+
 (defn subscribe! []
   (when config/rn-bridge-threshold-warnings-enabled?
-    (let [emitter (js-dependencies/EventEmmiter.)
+    (let [emitter (EventEmmiter.)
           events  (.stream snoopy emitter)]
       (threshold-warnings
        {:filter-fn         (constantly true)

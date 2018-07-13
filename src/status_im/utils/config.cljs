@@ -1,8 +1,8 @@
 (ns status-im.utils.config
-  (:require [status-im.react-native.js-dependencies :as rn-dependencies]
-            [clojure.string :as string]))
+  (:require [clojure.string :as string]))
 
-(def config (js->clj (.-default rn-dependencies/config) :keywordize-keys true))
+(def config1 (js/require "react-native-config"))
+(def config (js->clj (.-default config1) :keywordize-keys true))
 
 (defn get-config
   ([k] (get config k))

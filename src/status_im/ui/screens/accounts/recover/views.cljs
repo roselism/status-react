@@ -2,6 +2,7 @@
   (:require-macros [status-im.utils.views :refer [defview letsubs]])
   (:require [clojure.string :as string]
             [re-frame.core :as re-frame]
+            [status-im.thread :as status-im.thread]
             [reagent.core :as reagent]
             [status-im.ui.components.text-input.view :as text-input]
             [status-im.ui.components.react :as react]
@@ -13,16 +14,17 @@
             [status-im.ui.screens.accounts.db :as db]
             [status-im.utils.config :as config]
             [status-im.utils.ethereum.core :as ethereum]
-            [status-im.react-native.js-dependencies :as js-dependencies]
             [cljs.spec.alpha :as spec]
             [status-im.ui.components.common.common :as components.common]
             [status-im.utils.security :as security]))
+
+(def testfairy              (js/require "react-native-testfairy"))
 
 (defview passphrase-input [passphrase]
   (letsubs [error [:get-in [:accounts/recover :passphrase-error]]
             input-ref (reagent/atom nil)]
     {:component-did-mount (fn [_] (when config/testfairy-enabled?
-                                    (.hideView js-dependencies/testfairy @input-ref)))}
+                                    (.hideView testfairy @input-ref)))}
     [text-input/text-input-with-label
      {:style               components.styles/flex
       :height              92
@@ -32,7 +34,7 @@
       :multiline           true
       :default-value       passphrase
       :auto-correct        false
-      :on-change-text      #(re-frame/dispatch [:set-in [:accounts/recover :passphrase] (string/lower-case %)])
+      :on-change-text      #(status-im.thread/dispatch [:set-in [:accounts/recover :passphrase] (string/lower-case %)])
       :error               error}]))
 
 (defview password-input [password]
@@ -43,7 +45,7 @@
        :placeholder       (i18n/label :t/enter-password)
        :default-value     password
        :auto-focus        false
-       :on-change-text    #(re-frame/dispatch [:set-in [:accounts/recover :password] %])
+       :on-change-text    #(status-im.thread/dispatch [:set-in [:accounts/recover :password] %])
        :secure-text-entry true
        :error             error}]]))
 
@@ -75,4 +77,4 @@
             :disabled? (not valid-form?)
             :on-press  (fn [_]
                          (let [masked-passphrase (security/mask-data (ethereum/words->passphrase words))]
-                           (re-frame/dispatch [:recover-account masked-passphrase password])))}]])])))
+                           (status-im.thread/dispatch [:recover-account masked-passphrase password])))}]])])))

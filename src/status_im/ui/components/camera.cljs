@@ -1,13 +1,14 @@
 (ns status-im.ui.components.camera
   (:require [goog.object :as object]
             [reagent.core :as reagent]
-            [clojure.walk :as walk]
-            [status-im.react-native.js-dependencies :as js-dependecies]))
+            [clojure.walk :as walk]))
 
-(def default-camera (.-default js-dependecies/camera))
+(def camera1 (js/require "react-native-camera"))
+
+(def default-camera (.-default camera1))
 
 (defn constants [t]
-  (-> js-dependecies/camera
+  (-> camera1
       (object/get "constants")
       (object/get t)
       (js->clj)

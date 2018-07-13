@@ -1,14 +1,15 @@
 (ns status-im.models.browser-history
-  (:require [re-frame.core :as re-frame]))
+  (:require [re-frame.core :as re-frame]
+            [status-im.thread :as status-im.thread]))
 
 (defn dont-store-history-on-nav-change? [db]
   (get-in db [:browser/options :dont-store-history-on-nav-change?]))
 
 (defn dont-store-history-on-nav-change! []
-  (re-frame/dispatch [:update-browser-options {:dont-store-history-on-nav-change? true}]))
+  (status-im.thread/dispatch [:update-browser-options {:dont-store-history-on-nav-change? true}]))
 
 (defn clear-dont-store-history-on-nav-change! []
-  (re-frame/dispatch [:update-browser-options {:dont-store-history-on-nav-change? false}]))
+  (status-im.thread/dispatch [:update-browser-options {:dont-store-history-on-nav-change? false}]))
 
 (defn dont-store-history-on-nav-change-if-history-exists [db browser-id]
   (let [browsers (get-in db [:browser/browsers])
@@ -19,13 +20,13 @@
   (let [back-index (dec (:history-index browser))
         back-url (nth (:history browser) back-index)]
     (dont-store-history-on-nav-change!)
-    (re-frame/dispatch [:update-browser (-> browser (assoc :url back-url :history-index back-index))])))
+    (status-im.thread/dispatch [:update-browser (-> browser (assoc :url back-url :history-index back-index))])))
 
 (defn forward [browser]
   (let [forward-index (inc (:history-index browser))
         forward-url (nth (:history browser) forward-index)]
     (dont-store-history-on-nav-change!)
-    (re-frame/dispatch [:update-browser (-> browser (assoc :url forward-url :history-index forward-index))])))
+    (status-im.thread/dispatch [:update-browser (-> browser (assoc :url forward-url :history-index forward-index))])))
 
 (defn can-go-back? [browser]
   (let [hi (:history-index browser)]

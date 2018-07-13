@@ -1,8 +1,8 @@
 (ns status-im.utils.notifications
   (:require [goog.object :as object]
             [re-frame.core :as re-frame :refer [dispatch reg-fx]]
+            [status-im.thread :as status-im.thread]
             [status-im.utils.handlers :as handlers]
-            [status-im.react-native.js-dependencies :as rn]
             [status-im.utils.config :as config]
             [status-im.utils.utils :as utils]
             [status-im.ui.components.react :refer [copy-to-clipboard]]
@@ -19,42 +19,44 @@
 (handlers/register-handler-fx
  :request-notifications-granted
  (fn [_ _]
-   (re-frame.core/dispatch [:show-mainnet-is-default-alert])))
+   (status-im.thread/dispatch [:show-mainnet-is-default-alert])))
 
 (handlers/register-handler-fx
  :request-notifications-denied
  (fn [_ _]
-   (re-frame.core/dispatch [:show-mainnet-is-default-alert])))
+   (status-im.thread/dispatch [:show-mainnet-is-default-alert])))
+
+(def react-native-fcm       (js/require "react-native-fcm"))
 
 ;; NOTE: Only need to explicitly request permissions on iOS.
 (defn request-permissions []
-  (-> (.requestPermissions (.-default rn/react-native-fcm))
+  (-> (.requestPermissions (.-default react-native-fcm))
       (.then
        (fn [_]
          (log/debug "notifications-granted")
-         (dispatch [:request-notifications-granted {}]))
+         (status-im.thread/dispatch [:request-notifications-granted {}]))
        (fn [_]
          (log/debug "notifications-denied")
-         (dispatch [:request-notifications-denied {}])))))
+         (status-im.thread/dispatch [:request-notifications-denied {}])))))
 
 (defn get-fcm-token []
-  (-> (.getFCMToken (object/get rn/react-native-fcm "default"))
+  (-> (.getFCMToken (object/get react-native-fcm "default"))
       (.then (fn [x]
                (log/debug "get-fcm-token: " x)
-               (dispatch [:update-fcm-token x])))))
+               (status-im.thread/dispatch [:update-fcm-token x])))))
 
 (defn on-refresh-fcm-token []
-  (.on (.-default rn/react-native-fcm)
-       (.-RefreshToken (.-FCMEvent rn/react-native-fcm))
+  (.on (.-default react-native-fcm)
+       (.-RefreshToken (.-FCMEvent react-native-fcm))
        (fn [x]
          (log/debug "on-refresh-fcm-token: " x)
-         (dispatch [:update-fcm-token x]))))
+         (status-im.thread/dispatch [:update-fcm-token x]))))
 
 ;; TODO(oskarth): Only called in background on iOS right now.
 ;; NOTE(oskarth): Hardcoded data keys :sum and :msg in status-go right now.
 (defn on-notification []
-  (.on (.-default rn/react-native-fcm)
-       (.-Notification (.-FCMEvent rn/react-native-fcm))
+  (.on (.-default react-native-fcm)
+       (.-Notification (.-FCMEvent react-native-fcm))
        (fn [event-js]
          (let [event (js->clj event-js :keywordize-keys true)
                data  (select-keys event [:sum :msg])

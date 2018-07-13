@@ -1,5 +1,6 @@
 (ns status-im.ui.components.list-selection
   (:require [re-frame.core :as re-frame]
+            [status-im.thread :as status-im.thread]
             [status-im.i18n :as i18n]
             [status-im.ui.components.action-sheet :as action-sheet]
             [status-im.ui.components.dialog :as dialog]
@@ -31,7 +32,7 @@
 (defn browse [link]
   (show {:title       (i18n/label :t/browsing-title)
          :options     [{:label  (i18n/label :t/browsing-open-in-browser)
-                        :action #(re-frame/dispatch [:open-browser {:url link}])}
+                        :action #(status-im.thread/dispatch [:open-browser {:url link}])}
                        {:label  (i18n/label :t/browsing-open-in-web-browser)
                         :action #(.openURL react/linking (http/normalize-url link))}]
          :cancel-text (i18n/label :t/browsing-cancel)}))
@@ -39,5 +40,5 @@
 (defn browse-dapp [link]
   (show {:title       (i18n/label :t/browsing-title)
          :options     [{:label  (i18n/label :t/browsing-open-in-browser)
-                        :action #(re-frame/dispatch [:open-browser {:url link}])}]
+                        :action #(status-im.thread/dispatch [:open-browser {:url link}])}]
          :cancel-text (i18n/label :t/browsing-cancel)}))

@@ -1,5 +1,4 @@
-(ns status-im.ui.components.dialog
-  (:require [status-im.react-native.js-dependencies :as rn-dependencies]))
+(ns status-im.ui.components.dialog)
 
 (defn- callback [options]
   (fn [index]
@@ -7,8 +6,10 @@
       (when-let [handler (:action (nth options index))]
         (handler)))))
 
+(def dialogs (js/require "react-native-dialogs"))
+
 (defn- show [{:keys [title options cancel-text]}]
-  (let [dialog (new rn-dependencies/dialogs)]
+  (let [dialog (new dialogs)]
     (.set dialog (clj->js {:title         title
                            :negativeText  cancel-text
                            :items         (mapv :label options)

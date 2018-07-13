@@ -8,8 +8,10 @@
             [status-im.react-native.js-dependencies :as js-dependencies])
   (:refer-clojure :exclude [use]))
 
+(def svg1                    (js/require "react-native-svg"))
+
 (defn get-property [name]
-  (object/get js-dependencies/svg name))
+  (object/get svg1 name))
 
 (defn adapt-class [class]
   (when class

@@ -1,6 +1,7 @@
 (ns status-im.chat.commands.impl.transactions
   (:require-macros [status-im.utils.views :refer [defview letsubs]])
   (:require [re-frame.core :as re-frame]
+            [status-im.thread :as status-im.thread]
             [status-im.chat.commands.protocol :as protocol]
             [status-im.ui.components.react :as react]
             [status-im.ui.components.icons.vector-icons :as vector-icons]
@@ -13,7 +14,7 @@
 (defn- render-asset [selected-event-creator]
   (fn [{:keys [name symbol amount decimals] :as asset}]
     [react/touchable-highlight
-     {:on-press #(re-frame/dispatch (selected-event-creator symbol))}
+     {:on-press #(status-im.thread/dispatch (selected-event-creator symbol))}
      [react/view transactions-styles/asset-container
       [react/view transactions-styles/asset-main
        [react/image {:source (-> asset :icon :source)
@@ -51,7 +52,7 @@
   (letsubs [confirmed? [:transaction-confirmed? tx-hash]
             tx-exists? [:wallet-transaction-exists? tx-hash]]
     [react/touchable-highlight {:on-press #(when tx-exists?
-                                             (re-frame/dispatch [:show-transaction-details tx-hash]))}
+                                             (status-im.thread/dispatch [:show-transaction-details tx-hash]))}
      [react/view message-styles/command-send-status-container
       [vector-icons/icon (if confirmed? :icons/check :icons/dots)
        {:color           colors/blue
@@ -111,7 +112,7 @@
       :placeholder "Currency"
       ;; Suggestion components should be structured in such way that they will just take
       ;; one argument, event-creator fn used to construct event to fire whenever something
-      ;; is selected. 
+      ;; is selected.
       :suggestions choose-asset}
      {:id :amount
       :type :number

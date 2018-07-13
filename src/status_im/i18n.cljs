@@ -1,7 +1,6 @@
 (ns status-im.i18n
   (:require
    [cljs.spec.alpha :as spec]
-   [status-im.react-native.js-dependencies :as rn-dependencies]
    [status-im.translations.af :as af]
    [status-im.translations.ar :as ar]
    [status-im.translations.bel :as be]
@@ -60,8 +59,10 @@
    [clojure.string :as string]
    [clojure.set :as set]))
 
-(set! (.-fallbacks rn-dependencies/i18n) true)
-(set! (.-defaultSeparator rn-dependencies/i18n) "/")
+(def i18n (.-default (js/require "react-native-i18n")))
+
+(set! (.-fallbacks i18n) true)
+(set! (.-defaultSeparator i18n) "/")
 
 ;; translations
 #_(def translations-by-locale {:af          af/translations
@@ -328,7 +329,7 @@
 (defn supported-locales-that-are-not-considered-supported []
   (set/difference (actual-supported-locales) supported-locales))
 
-(set! (.-translations rn-dependencies/i18n)
+(set! (.-translations i18n)
       (clj->js translations-by-locale))
 
 ;;:zh, :zh-hans-xx, :zh-hant-xx have been added until this bug will be fixed https://github.com/fnando/i18n-js/issues/460
@@ -347,7 +348,7 @@
 (defn label-number [number]
   (when number
     (let [{:keys [delimiter separator]} delimeters]
-      (.toNumber rn-dependencies/i18n
+      (.toNumber i18n
                  (string/replace number #"," ".")
                  (clj->js {:precision                 10
                            :strip_insignificant_zeros true
@@ -363,14 +364,14 @@
 (defn label
   ([path] (label path {}))
   ([path options]
-   (if (exists? rn-dependencies/i18n.t)
+   (if (exists? i18n.t)
      (let [options (update options :amount label-number)]
-       (.t rn-dependencies/i18n (name path) (clj->js (label-options options))))
+       (.t i18n (name path) (clj->js (label-options options))))
      (name path))))
 
 (defn label-pluralize [count path & options]
-  (if (exists? rn-dependencies/i18n.t)
-    (.p rn-dependencies/i18n count (name path) (clj->js options))
+  (if (exists? i18n.t)
+    (.p i18n count (name path) (clj->js options))
     (name path)))
 
 (defn message-status-label [status]
@@ -381,7 +382,7 @@
        (label)))
 
 (def locale
-  (.-locale rn-dependencies/i18n))
+  (.-locale i18n))
 
 (defn get-contact-translated [contact-id key fallback]
   (let [translation #(get-in default-contacts [(keyword contact-id) key (keyword %)])]

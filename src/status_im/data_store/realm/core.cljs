@@ -8,7 +8,6 @@
             [status-im.utils.fs :as fs]
             [status-im.utils.async :as utils.async]
             [cognitect.transit :as transit]
-            [status-im.react-native.js-dependencies :as rn-dependencies]
             [status-im.utils.utils :as utils]))
 
 (def new-account-filename "new-account")
@@ -21,11 +20,13 @@
         (aset arr i (aget key i)))
       (.-buffer arr))))
 
+(def realm                  (js/require "realm"))
+
 (defn encrypted-realm-version
   "Returns -1 if the file does not exists, the schema version if it successfully
   decrypts it, error otherwise."
   [file-name encryption-key]
-  (.schemaVersion rn-dependencies/realm file-name (to-buffer encryption-key)))
+  (.schemaVersion realm file-name (to-buffer encryption-key)))
 
 (defn open-realm
   [options file-name encryption-key]
@@ -35,11 +36,11 @@
       (log/debug "Using encryption key...")
       (set! (.-encryptionKey options-js) (to-buffer encryption-key)))
     (when (exists? js/window)
-      (rn-dependencies/realm. options-js))))
+      (realm. options-js))))
 
 (defn- delete-realm
   [file-name]
-  (.deleteFile rn-dependencies/realm (clj->js {:path file-name})))
+  (.deleteFile realm (clj->js {:path file-name})))
 
 (defn- default-realm-dir [path]
   (string/replace path #"default\.realm$" ""))
@@ -52,7 +53,7 @@
 (defn- delete-realms []
   (log/warn "realm: deleting all realms")
   (..
-   (fs/read-dir (default-realm-dir (.-defaultPath rn-dependencies/realm)))
+   (fs/read-dir (default-realm-dir (.-defaultPath realm)))
    (then #(->> (js->clj % :keywordize-keys true)
                (map :path)
                (filter is-realm-file?)
@@ -107,7 +108,7 @@
   (log/debug "Opening base realm... (first run)")
   (when @base-realm
     (close @base-realm))
-  (reset! base-realm (open-migrated-realm (.-defaultPath rn-dependencies/realm) base/schemas encryption-key))
+  (reset! base-realm (open-migrated-realm (.-defaultPath realm) base/schemas encryption-key))
   (log/debug "Created @base-realm"))
 
 (defn reset-account-realm [encryption-key]

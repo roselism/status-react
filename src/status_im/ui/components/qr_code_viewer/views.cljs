@@ -1,13 +1,14 @@
 (ns status-im.ui.components.qr-code-viewer.views
   (:require [reagent.core :as reagent]
-            [status-im.react-native.js-dependencies :as rn-dependencies]
             [status-im.ui.components.qr-code-viewer.styles :as styles]
             [status-im.ui.components.react :as react]
             [status-im.ui.components.text :as text]))
 
+(def qr-code1                (js/require "react-native-qrcode"))
+
 (defn qr-code [props]
   (reagent/create-element
-   rn-dependencies/qr-code
+   qr-code1
    (clj->js (merge {:inverted true} props))))
 
 (defn- footer [style value]

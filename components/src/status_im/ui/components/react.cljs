@@ -23,7 +23,7 @@
 
 (def native-modules (.-NativeModules js-dependencies/react-native))
 (def device-event-emitter (.-DeviceEventEmitter js-dependencies/react-native))
-(def dismiss-keyboard! js-dependencies/dismiss-keyboard)
+(def dismiss-keyboard! (js/require "dismissKeyboard"))
 (def back-handler (get-react-property "BackHandler"))
 
 (def splash-screen (.-SplashScreen native-modules))
@@ -128,7 +128,7 @@
 
 ;; Image picker
 
-(def image-picker-class js-dependencies/image-crop-picker)
+(def image-picker-class      (js/require "react-native-image-crop-picker"))
 
 (defn show-access-error [o]
   (when (= "ERROR_PICKER_UNAUTHORIZED_KEY" (object/get o "code")) ; Do not show error when user cancel selection
@@ -156,7 +156,7 @@
 
 ;; HTTP Bridge
 
-(def http-bridge js-dependencies/http-bridge)
+(def http-bridge            (js/require "react-native-http-bridge"))
 
 ;; KeyboardAvoidingView
 

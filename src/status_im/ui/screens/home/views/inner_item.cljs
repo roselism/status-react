@@ -1,6 +1,7 @@
 (ns status-im.ui.screens.home.views.inner-item
   (:require-macros [status-im.utils.views :refer [defview letsubs]])
   (:require [re-frame.core :as re-frame]
+
             [clojure.string :as str]
             [status-im.constants :as constants]
             [status-im.ui.components.react :as react]
@@ -97,7 +98,7 @@
             chat-name    [:get-chat-name chat-id]]
     (let [hide-dapp?          (= chat-id const/console-chat-id)
           truncated-chat-name (utils/truncate-str chat-name 30)]
-      [react/touchable-highlight {:on-press #(re-frame/dispatch [:navigate-to-chat chat-id])}
+      [react/touchable-highlight {:on-press #(status-im.thread/dispatch [:navigate-to-chat chat-id])}
        [react/view styles/chat-container
         [react/view styles/chat-icon-container
          [chat-icon.screen/chat-icon-view-chat-list chat-id group-chat truncated-chat-name color online hide-dapp?]]
@@ -112,7 +113,7 @@
 
 (defview home-list-browser-item-inner-view [{:keys [name url] :as browser}]
   (letsubs [dapp [:get-dapp-by-name name]]
-    [react/touchable-highlight {:on-press #(re-frame/dispatch [:open-browser browser])}
+    [react/touchable-highlight {:on-press #(status-im.thread/dispatch [:open-browser browser])}
      [react/view styles/chat-container
       [react/view styles/chat-icon-container
        (if dapp

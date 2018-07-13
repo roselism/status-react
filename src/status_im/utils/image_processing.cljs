@@ -2,11 +2,12 @@
   (:require [goog.object :as object]
             [status-im.utils.fs :refer [read-file]]
             [taoensso.timbre :as log]
-            [clojure.string :as str]
-            [status-im.react-native.js-dependencies :as rn-dependencies]))
+            [clojure.string :as str]))
+
+(def image-resizer          (js/require "react-native-image-resizer"))
 
 (defn- resize [path max-width max-height on-resize on-error]
-  (let [resize-fn (-> rn-dependencies/image-resizer
+  (let [resize-fn (-> image-resizer
                       (object/get "default")
                       (object/get "createResizedImage"))]
     (-> (resize-fn path max-width max-height "JPEG" 75 0 nil)

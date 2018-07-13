@@ -1,9 +1,8 @@
 (ns status-im.utils.instabug
   (:require [taoensso.timbre :as log]
-            [status-im.utils.config :as config]
-            [status-im.react-native.js-dependencies :as rn-dependencies]))
+            [status-im.utils.config :as config]))
 
-(def instabug rn-dependencies/instabug)
+(def instabug               (js/require "instabug-reactnative"))
 
 (defn submit-bug []
   (.invokeWithInvocationMode
@@ -32,7 +31,7 @@
 (defn log [str]
   (if js/goog.DEBUG
     (log/debug str)
-    (.IBGLog rn-dependencies/instabug str)))
+    (.IBGLog instabug str)))
 
 (defn instabug-appender []
   {:enabled?   true
@@ -49,7 +48,7 @@
   (log/merge-config! {:appenders {:instabug (instabug-appender)}}))
 
 (defn init []
-  (.startWithToken rn-dependencies/instabug
+  (.startWithToken instabug
                    config/instabug-token
-                   (.. rn-dependencies/instabug -invocationEvent -shake))
-  (.setIntroMessageEnabled rn-dependencies/instabug false))
+                   (.. instabug -invocationEvent -shake))
+  (.setIntroMessageEnabled instabug false))

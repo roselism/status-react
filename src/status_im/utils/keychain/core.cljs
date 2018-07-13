@@ -1,7 +1,5 @@
 (ns status-im.utils.keychain.core
-  (:require [re-frame.core :as re-frame]
-            [taoensso.timbre :as log]
-            [status-im.react-native.js-dependencies :as rn]))
+  (:require [taoensso.timbre :as log]))
 
 (def key-bytes 64)
 (def username "status-im.encryptionkey")
@@ -30,17 +28,20 @@
 
     :else encryption-key))
 
+(def keychain               (js/require "react-native-keychain"))
+(def secure-random          (.-generateSecureRandom (js/require "react-native-securerandom")))
+
 (defn store [encryption-key]
   (log/debug "storing encryption key")
   (-> (.setGenericPassword
-       rn/keychain
+       keychain
        username
        (.stringify js/JSON encryption-key))
       (.then (constantly encryption-key))))
 
 (defn create []
   (log/debug "no key exists, creating...")
-  (.. (rn/secure-random key-bytes)
+  (.. (secure-random key-bytes)
       (then bytes->js-array)))
 
 (defn handle-not-found []
@@ -54,7 +55,7 @@
 
 (defn get-encryption-key []
   (log/debug "initializing realm encryption key...")
-  (.. (.getGenericPassword rn/keychain)
+  (.. (.getGenericPassword keychain)
       (then
        (fn [res]
          (if res
@@ -63,4 +64,4 @@
 
 (defn reset []
   (log/debug "resetting key...")
-  (.resetGenericPassword rn/keychain))
+  (.resetGenericPassword keychain))
